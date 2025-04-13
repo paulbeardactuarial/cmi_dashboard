@@ -57,15 +57,14 @@ htmlOutput("selected_point_info")
 ,
 
 
-  mainPanel(
-    girafeOutput('heatmap')
-  ),
-
-fluidRow(
-  column(width = 12, girafeOutput("plot_by_year")
+  fluidRow(
+    column(
+      offset = 0.5,
+      width = 11,
+      girafeOutput('heatmap')
   )
-
 )
+
 
 )
 
