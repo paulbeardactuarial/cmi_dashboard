@@ -89,6 +89,7 @@ function(input, output, session) {
     p1 <-
       dataset() |>
       ggplot(aes(x = year, y = age, fill = mi)) +
+      geom_tile() +
       geom_tile_interactive(aes(data_id = cohort)) +
       theme_classic() +
       scale_x_continuous(expand = c(0,0)) +
@@ -106,7 +107,7 @@ function(input, output, session) {
     p2 <-
       dataset() |>
       ggplot(aes(x = year, y = mi, group = cohort)) +
-      geom_line_interactive(aes(data_id = cohort), color = "grey", linewidth = 0.3) +
+      geom_line_interactive(aes(data_id = cohort), color = "grey", linewidth = 0.5) +
       scale_y_continuous(
         name = "q imp (%)",
         labels = scales::percent_format()) +
@@ -116,10 +117,12 @@ function(input, output, session) {
 
     ip <-
     girafe(ggobj = p,
+           width_svg  = 12,
+           height_svg  = 6,
            options =
              list(
-               opts_hover(css = "stroke:black;"),
-               opts_hover_inv(css = "opacity:0.7;")
+               opts_hover(css = "stroke:black;color:black;line-width:20px"),
+               opts_hover_inv(css = "opacity:0.25;")
              )
     )
 
