@@ -50,15 +50,24 @@ sliderInput('Sy',
             value=7,
             step=0.1,
             ticks =F,
-            round=0)
+            round=0),
+
+htmlOutput("selected_point_info")
 )
 ,
 
+
   mainPanel(
     girafeOutput('heatmap')
+  ),
+
+fluidRow(
+  column(width = 12, girafeOutput("plot_by_year")
   )
+
 )
 
+)
 
 
 
