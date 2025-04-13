@@ -45,71 +45,6 @@ withr::with_seed(1,
 
 
 
-
-
-
-
-
-
-
-# function(input, output) {
-#
-#   dataset <- reactive({
-#     rp <- cmi::rp
-#     rp$smoothing_params$kappa <- input$Sk
-#     cmi_proj_model <-
-#       cmi::CMI2022_model$new(
-#         gender = "male",
-#         dth_exp = randomised_male_data,
-#         rp = cmi::rp,
-#         projection_params = cmi::projection_params
-#       )
-#     cmi_proj_model$run()
-#     projected_mi <-
-#       cmi_proj_model$mortality_improvements_projected |>
-#       dplyr::filter(age <= 120 & year <= 2072) |>
-#       dplyr::mutate(cohort = year - age) |>
-#       dplyr::mutate(row_number = dplyr::row_number())
-#     return(projected_mi)
-#   })
-#
-#   output$heatmap <- renderGirafe({
-#
-#   p <-
-#     dataset() |>
-#     ggplot(aes(x = year, y = age, fill = mi)) +
-#     geom_tile_interactive(aes(data_id = row_number)) +
-#     theme_classic() +
-#     scale_x_continuous(expand = c(0,0)) +
-#     scale_y_continuous(expand = c(0,0)) +
-#     scale_fill_gradient2(
-#       low = "blue",
-#       mid = "white",
-#       high = "red",
-#       midpoint = 0,
-#       limits = c(-0.06, 0.06),
-#       labels = scales::percent_format()
-#     )
-#
-#   ip <-
-#     girafe(
-#       ggobj = p,
-#       options = list(
-#         opts_hover(css = "fill:grey;stroke:black;stroke-width:1px;"),
-#         opts_selection(
-#           type = "single",
-#           only_shiny = FALSE,
-#           css = "fill:black;stroke:black;stroke-width:1px;")
-#       )
-#     )
-#
-#   return(ip)
-#   })
-#
-#
-# }
-
-
 function(input, output, session) {
   dataset <- reactive({
     rp <- cmi::rp
@@ -151,15 +86,17 @@ function(input, output, session) {
     clicked_cohort <- selected_data[["cohort"]]
 
 
-    age_filter_df <- dataset() |> dplyr::filter(age == clicked_age)
-    cohort_filter_df <- dataset() |> dplyr::filter(cohort == clicked_cohort)
+    age_filter_df <- dataset() |> dplyr::filter(age == clicked_age) |> dplyr::filter(!is.na(mi))
+    cohort_filter_df <- dataset() |> dplyr::filter(cohort == clicked_cohort) |> dplyr::filter(!is.na(mi))
     mi_range <- range(c(age_filter_df$mi, cohort_filter_df$mi))
+    year_range <- range(c(age_filter_df$year, cohort_filter_df$year))
 
     p1 <-
       age_filter_df |>
       ggplot(aes(x = year, y = mi)) +
       scale_y_continuous(labels = scales::percent_format(), limits = mi_range) +
-      geom_line_interactive() +
+      scale_x_continuous(limits = year_range) +
+      geom_line(size = 1.5) +
       theme_classic() +
       labs(
         title = glue::glue("Mortality improvements for age {clicked_age}")
@@ -168,7 +105,8 @@ function(input, output, session) {
       cohort_filter_df |>
       ggplot(aes(x = year, y = mi)) +
       scale_y_continuous(labels = scales::percent_format(), limits = mi_range) +
-      geom_line_interactive() +
+      scale_x_continuous(limits = year_range) +
+      geom_line(size = 1.5) +
       theme_classic() +
       labs(
         title = glue::glue("Mortality improvements when born in {clicked_cohort}")
@@ -177,8 +115,8 @@ function(input, output, session) {
     ip <-
       girafe(
         ggobj = p,
-        width_svg = 18,  # Set a base width
-        height_svg = 6,  # Half the width
+        width_svg = 12,  # Set a base width
+        height_svg = 4,  # Half the width
         options = list(
           opts_hover(css = "fill:grey;stroke:black;stroke-width:1px;")
         )
@@ -222,8 +160,26 @@ function(input, output, session) {
   })
 
   output$heatmap <- renderGirafe({
+
+    row_num <- selected_row()
+
+    if (is.null(row_num)) {
+      plot_data <- dataset()
+      mark_clicks_black <- NULL
+    } else {
+    selected_data <- dataset() |> dplyr::filter(row_number == row_num)
+    clicked_year <- selected_data[["year"]]
+    clicked_age <- selected_data[["age"]]
+    clicked_cohort <- selected_data[["cohort"]]
+    plot_data <- dataset() |> dplyr::mutate(highlight = age %in% clicked_age | cohort %in% clicked_cohort)
+    mark_clicks_black <- list(
+      geom_tile(aes(alpha = highlight), fill = "black"),
+      scale_alpha_manual(values = c("TRUE" = 1, "FALSE" = 0))
+    )
+    }
+
     p <-
-      dataset() |>
+      plot_data |>
       ggplot(aes(x = year, y = age, fill = mi)) +
       geom_tile_interactive(aes(data_id = row_number)) +
       theme_classic() +
@@ -237,11 +193,12 @@ function(input, output, session) {
         limits = c(-0.06, 0.06),
         labels = scales::percent_format()
       )
+
     ip <-
       girafe(
         ggobj = p,
         options = list(
-          opts_hover(css = "fill:grey;stroke:black;stroke-width:1px;"),
+          opts_hover(css = "fill:grey;stroke:black;stroke-width:0.1px;"),
           opts_selection(
             type = "single",
             only_shiny = FALSE,
@@ -251,3 +208,41 @@ function(input, output, session) {
     return(ip)
   })
 }
+
+
+
+
+#
+#
+#
+#
+# rp <- cmi::rp
+# rp$smoothing_params$kappa <- 7
+# cmi_proj_model <-
+#   cmi::CMI2022_model$new(
+#     gender = "male",
+#     dth_exp = randomised_male_data,
+#     rp = cmi::rp,
+#     projection_params = cmi::projection_params
+#   )
+# cmi_proj_model$run()
+# projected_mi <-
+#   cmi_proj_model$mortality_improvements_projected |>
+#   dplyr::filter(age <= 120 & year <= 2072) |>
+#   dplyr::mutate(cohort = year - age) |>
+#   dplyr::mutate(row_number = dplyr::row_number())
+#
+#
+# p <-
+# projected_mi |>
+#   ggplot(aes(x = year, y = mi, group = age)) +
+#   geom_line_interactive(aes(data_id = age), color = "grey") +
+#   theme_classic()
+#
+# girafe(ggobj = p,
+#        options =
+#          list(
+#            opts_hover(css = "stroke:black;"),
+#            opts_hover_inv(css = "opacity:0.5;")
+#          )
+#        )
