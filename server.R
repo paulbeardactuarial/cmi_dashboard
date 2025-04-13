@@ -1,6 +1,11 @@
 library(shiny)
 library(ggplot2)
 library(ggiraph)
+library(remotes)
+library(withr)
+if (!require("cmi")) {
+  remotes::install_github("paulbeardactuarial/cmi", auth_token = Sys.getenv("GITHUB_PAT"))
+}
 library(cmi)
 
 withr::with_seed(1,
