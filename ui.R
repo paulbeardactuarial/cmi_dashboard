@@ -160,7 +160,7 @@ fluidPage(
 
         # Age and cohort range sliders
         div(style = "transform: scale(0.9); transform-origin: left top;",
-            sliderInput("sm_alpha",
+            sliderInput("smoothAlpha",
                         "Sα",
                         min = 6,
                         max = 12,
@@ -170,7 +170,7 @@ fluidPage(
         ),
 
         div(style = "transform: scale(0.9); transform-origin: left top;",
-            sliderInput("sm_beta",
+            sliderInput("smoothBeta",
                         "Sβ",
                         min = 6,
                         max = 12,
@@ -180,7 +180,7 @@ fluidPage(
         ),
 
         div(style = "transform: scale(0.9); transform-origin: left top;",
-            sliderInput("sm_gamma",
+            sliderInput("smoothGamma",
                         "Sγ",
                         min = 6,
                         max = 12,
@@ -190,7 +190,7 @@ fluidPage(
         ),
 
         div(style = "transform: scale(0.9); transform-origin: left top;",
-            sliderInput("sm_kappa",
+            sliderInput("smoothKappa",
                         "Sκ",
                         min = 6,
                         max = 12,
@@ -218,6 +218,17 @@ fluidPage(
                         ticks = FALSE)
         ),
 
+        # Age and cohort range sliders
+        div(style = "transform: scale(0.9); transform-origin: left top;",
+            sliderInput("yearRange",
+                        "Year Range",
+                        min = 1982,
+                        max = 2022,
+                        value = c(1982, 2022),
+                        step = 1,
+                        ticks = FALSE)
+        ),
+
         div(style = "transform: scale(0.9); transform-origin: left top;",
             uiOutput("cohortRangeInput") # Dynamic UI for cohort range based on min age
         )
@@ -237,7 +248,7 @@ fluidPage(
                         "LTR",
                         min = -5,
                         max = 10,
-                        value = 1,
+                        value = 0,
                         step = 0.5,
                         ticks = FALSE,
                         post = "%")
@@ -248,15 +259,18 @@ fluidPage(
             uiOutput("taperAgeInput")
         ),
 
-        # Dropdown selection
-        prettyRadioButtons(
-          inputId = "viewType",
-          label = "View Type",
-          thick = TRUE,
-          choices = c("age", "cohort", "year"),
-          animation = "pulse",
-          status = "info"
-        )
+        # additionalImprove slider
+        div(style = "transform: scale(0.9); transform-origin: left top;",
+            sliderInput("additionalImprove",
+                        "Additional Improvement",
+                        min = -2,
+                        max = 4,
+                        value = 0,
+                        step = 0.1,
+                        ticks = FALSE,
+                        post = "%")
+        ),
+
       )
     )
   ),
@@ -264,7 +278,19 @@ fluidPage(
   # Heatmap output below both columns
   fluidRow(
     column(
-      width = 12,
+      width = 1,
+      # Dropdown selection
+      prettyRadioButtons(
+        inputId = "viewType",
+        label = "View Type",
+        thick = TRUE,
+        choices = c("age", "cohort", "year"),
+        animation = "pulse",
+        status = "info"
+      )
+    ),
+    column(
+      width = 11,
       style = "margin-top: 15px;",
       girafeOutput('heatmap', height = "600px")
     )

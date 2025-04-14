@@ -47,15 +47,25 @@ withr::with_seed(1,
 
 function(input, output, session) {
 
+    debouncedRunParameters <- reactive({
+      debounce(input$smoothAlpha, 500)
+      debounce(input$smoothBeta, 500)
+      debounce(input$smoothKappa, 500)
+      debounce(input$smoothGamma, 500)
+    debounce(input$mySlider, 500) # Wait 500ms after last change
+  })
+
     # Dynamic Cohort Range Input that depends on minimum age
+  cohortRange <- reactiveVal(c(30, 110))
     output$cohortRangeInput <- renderUI({
       minCohort <- input$ageRange[1] # Min cohort must be >= min age
-
+      cohortRangeSetting <- cohortRange()
+      cohortRangeSetting[1] <- max(minCohort, cohortRangeSetting[1])
       sliderInput("cohortRange",
                   "Cohort Constraint Range",
                   min = minCohort,
                   max = 140,
-                  value = c(minCohort, 110),
+                  value = cohortRangeSetting,
                   step = 1,
                   ticks = FALSE)
     })
@@ -81,15 +91,24 @@ function(input, output, session) {
       }
     })
 
-
-  apci_solved <- reactive({
+   dataset <- reactive({
     rp <- cmi::rp
-    rp$smoothing_params$kappa <- input$Sk
+    # rp$smoothing_params$alpha <- input$smoothAlpha
+    # rp$smoothing_params$beta <- input$smoothBeta
+    # rp$smoothing_params$kappa <- input$smoothKappa
+    # rp$smoothing_params$gamma <- input$smoothGamma
+    # rp$age$min <- input$ageRange[1]
+    # rp$age$max <- input$ageRange[2]
+    # rp$year$min <- input$yearRange[1]
+    # rp$year$max <- input$yearRange[2]
+    # rp$age$cohort_low <- input$cohortRangeInput[1]
+    # rp$age$cohort_high <- input$cohortRangeInput[2]
+
     cmi_proj_model <-
       cmi::CMI2022_model$new(
         gender = "male",
         dth_exp = randomised_male_data,
-        rp = cmi::rp,
+        rp = rp,
         projection_params = cmi::projection_params
       )
     cmi_proj_model$run()
@@ -101,32 +120,39 @@ function(input, output, session) {
     return(projected_mi)
   })
 
-  dataset <- reactive({
-    rp <- cmi::rp
-    rp$smoothing_params$kappa <- input$Sk
-    cmi_proj_model <-
-      cmi::CMI2022_model$new(
-        gender = "male",
-        dth_exp = randomised_male_data,
-        rp = cmi::rp,
-        projection_params = cmi::projection_params
-      )
-    cmi_proj_model$run()
-    projected_mi <-
-      cmi_proj_model$mortality_improvements_projected |>
-      dplyr::filter(age <= 120 & year <= 2072) |>
-      dplyr::mutate(cohort = year - age) |>
-      dplyr::mutate(row_number = dplyr::row_number())
-    return(projected_mi)
-  })
+  # dataset <- reactive({
+  #   rp <- cmi::rp
+  #   rp$smoothing_params$kappa <- input$Sk
+  #   cmi_proj_model <-
+  #     cmi::CMI2022_model$new(
+  #       gender = "male",
+  #       dth_exp = randomised_male_data,
+  #       rp = cmi::rp,
+  #       projection_params = cmi::projection_params
+  #     )
+  #   cmi_proj_model$run()
+  #   projected_mi <-
+  #     cmi_proj_model$mortality_improvements_projected |>
+  #     dplyr::filter(age <= 120 & year <= 2072) |>
+  #     dplyr::mutate(cohort = year - age) |>
+  #     dplyr::mutate(row_number = dplyr::row_number())
+  #   return(projected_mi)
+  # })
 
   output$heatmap <- renderGirafe({
+
+    variable_used_for_p2 <- input$viewType
 
     p1 <-
       dataset() |>
       ggplot(aes(x = year, y = age, fill = mi)) +
       geom_tile() +
-      geom_tile_interactive(aes(data_id = cohort)) +
+      geom_tile_interactive(
+        aes(
+          data_id = get(variable_used_for_p2),
+          tooltip = paste0(variable_used_for_p2, ": ", get(variable_used_for_p2))
+          )
+        ) +
       theme_classic() +
       scale_x_continuous(expand = c(0,0)) +
       scale_y_continuous(expand = c(0,0)) +
@@ -140,13 +166,27 @@ function(input, output, session) {
       )
 
 
+    p2_x_var <- ifelse(variable_used_for_p2 == "year", "age", "year")
     p2 <-
       dataset() |>
-      ggplot(aes(x = year, y = mi, group = cohort)) +
-      geom_line_interactive(aes(data_id = cohort), color = "grey", linewidth = 0.5) +
+      ggplot(
+        aes(
+          x = get(p2_x_var),
+          y = mi,
+          group = get(variable_used_for_p2)
+          )
+        ) +
+      geom_line_interactive(
+        aes(
+          data_id = get(variable_used_for_p2),
+          tooltip = paste0(variable_used_for_p2, ": ", get(variable_used_for_p2))
+          ),
+        color = "grey",
+        linewidth = 0.5) +
       scale_y_continuous(
         name = "q imp (%)",
         labels = scales::percent_format()) +
+      scale_x_continuous(name = p2_x_var) +
       theme_classic()
 
     p <- p1 + p2
@@ -158,7 +198,8 @@ function(input, output, session) {
            options =
              list(
                opts_hover(css = "stroke:black;color:black;line-width:20px"),
-               opts_hover_inv(css = "opacity:0.25;")
+               opts_hover_inv(css = "opacity:0.25;"),
+               opts_tooltip(css = "background-color:#008CBA; color:white; padding:5px; border-radius:4px;")
              )
     )
 
