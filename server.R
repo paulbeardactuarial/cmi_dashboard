@@ -46,6 +46,42 @@ withr::with_seed(1,
 
 
 function(input, output, session) {
+
+    # Dynamic Cohort Range Input that depends on minimum age
+    output$cohortRangeInput <- renderUI({
+      minCohort <- input$ageRange[1] # Min cohort must be >= min age
+
+      sliderInput("cohortRange",
+                  "Cohort Constraint Range",
+                  min = minCohort,
+                  max = 140,
+                  value = c(minCohort, 110),
+                  step = 1,
+                  ticks = FALSE)
+    })
+
+    # Dynamic Taper Age Input that depends on maximum age
+    taperAge <- reactiveVal(110)  # Initial value storage
+
+    output$taperAgeInput <- renderUI({
+      maxAge <- input$ageRange[2]
+
+      sliderInput("taperAge",
+                  "Tapered to Zero Age",
+                  min = maxAge,
+                  max = 120,
+                  value = taperAge(),
+                  step = 1,
+                  ticks = FALSE)
+    })
+
+    observeEvent(input$taperAge, {
+      if(!is.null(input$taperAge)) {
+        taperAge(input$taperAge)  # Update stored value
+      }
+    })
+
+
   apci_solved <- reactive({
     rp <- cmi::rp
     rp$smoothing_params$kappa <- input$Sk
@@ -128,9 +164,9 @@ function(input, output, session) {
 
     return(ip)
   })
+
+
 }
-
-
 
 
 
