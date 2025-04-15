@@ -187,7 +187,7 @@ fluidPage(
     )
   ),
 
-  # Heatmap output below both columns
+  # Dropdown menu to pick the graph type shown (i.e. age, cohort or year)
   fluidRow(
     column(
       width = 4,
@@ -204,6 +204,7 @@ fluidPage(
       )
     )),
 
+  # the money
     fluidRow(
     column(
       width = 12,

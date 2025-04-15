@@ -61,13 +61,6 @@ extract_slider_vars_rp <-
 
 function(input, output, session) {
 
-  debouncedRunParameters <- reactive({
-    debounce(input$smoothAlpha, 500)
-    debounce(input$smoothBeta, 500)
-    debounce(input$smoothKappa, 500)
-    debounce(input$smoothGamma, 500)
-    debounce(input$mySlider, 500) # Wait 500ms after last change
-  })
 
   # Dynamic Cohort Range Input that depends on minimum age
   cohortRange <- reactiveVal(c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high))
@@ -155,24 +148,13 @@ function(input, output, session) {
     pp$ltr <- input$ltr/100
     #pp$age_taper <- input$taperAgeInput
     projParametersReactive(pp)
-  })
+  }) |> debounce(250)
 
   cmi_proj_model <- eventReactive(
 
     input$click,{
 
       rp <- runParametersReactive()
-    # rp <- cmi::rp
-    # rp$smoothing_params$alpha <- input$smoothAlpha
-    # rp$smoothing_params$beta <- input$smoothBeta
-    # rp$smoothing_params$kappa <- input$smoothKappa
-    # rp$smoothing_params$gamma <- input$smoothGamma
-    # rp$age$min <- input$ageRange[1]
-    # rp$age$max <- input$ageRange[2]
-    # rp$year$min <- input$yearRange[1]
-    # rp$year$max <- input$yearRange[2]
-    # rp$age$cohort_low <- input$cohortRangeInput[1]
-    # rp$age$cohort_high <- input$cohortRangeInput[2]
 
     model <- cmi::CMI2022_model$new(
       gender = "male",
@@ -216,15 +198,28 @@ function(input, output, session) {
         )
       ) +
       theme_classic() +
-      scale_x_continuous(expand = c(0,0)) +
-      scale_y_continuous(expand = c(0,0)) +
-      scale_fill_gradient2(
-        low = "blue",
-        mid = "white",
-        high = "red",
-        midpoint = 0,
+      scale_x_continuous(expand = c(0, 0)) +
+      scale_y_continuous(expand = c(0, 0)) +
+      scale_fill_gradientn(
+        colours = c(
+          "#7f3b08",
+          "#b35806",
+          "#e08214",
+          "#fdb863",
+          "#fee0b6",
+          "#f7f7f7",
+          "#d8daeb",
+          "#b2abd2",
+          "#8073ac",
+          "#542788",
+          "#2d004b"
+          ),
+        values = scales::rescale(seq(from = 0.06, to = -0.06, length.out = 11)),
         limits = c(-0.06, 0.06),
         labels = scales::percent_format()
+      ) +
+      theme(
+        legend.position = "left"
       )
 
 
@@ -255,8 +250,8 @@ function(input, output, session) {
 
     ip <-
       girafe(ggobj = p,
-             width_svg  = 12,
-             height_svg  = 6,
+             width_svg  = 14,
+             height_svg  = 7,
              options =
                list(
                  opts_hover(css = "stroke:black;color:black;line-width:20px"),
@@ -271,27 +266,3 @@ function(input, output, session) {
 
 }
 
-
-
-
-#
-# rp <- cmi::rp
-# rp$smoothing_params$kappa <- 7
-# cmi_proj_model <-
-#   cmi::CMI2022_model$new(
-#     gender = "male",
-#     dth_exp = randomised_male_data,
-#     rp = cmi::rp,
-#     projection_params = cmi::projection_params
-#   )
-# cmi_proj_model$run()
-# projected_mi <-
-#   cmi_proj_model$mortality_improvements_projected |>
-#   dplyr::filter(age <= 120 & year <= 2072) |>
-#   dplyr::mutate(cohort = year - age) |>
-#   dplyr::mutate(row_number = dplyr::row_number())
-#
-# projected_mi |>
-# ggplot(aes(x = year, y = mi, group = cohort)) +
-#   geom_line_interactive(aes(data_id = cohort), color = "grey", linewidth = 0.3) +
-#   theme_classic()
