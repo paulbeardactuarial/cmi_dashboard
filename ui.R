@@ -176,22 +176,37 @@ fluidPage(
     )
   ),
 
+  fluidRow(
+    column(
+      width = 6,
+      offset = 3,
+      tags$div(
+        style = "color: red; font-weight: bold; font-size: 16px;",
+        textOutput("alignmentMessage")
+      )
+    )
+  ),
+
   # Heatmap output below both columns
   fluidRow(
     column(
-      width = 1,
+      width = 4,
+      offset = 1,
       # Dropdown selection
       prettyRadioButtons(
         inputId = "viewType",
         label = "View Type",
         thick = TRUE,
+        inline = TRUE,
         choices = c("age", "cohort", "year"),
         animation = "pulse",
         status = "info"
       )
-    ),
+    )),
+
+    fluidRow(
     column(
-      width = 11,
+      width = 12,
       style = "margin-top: 15px;",
       girafeOutput('heatmap', height = "600px")
     )

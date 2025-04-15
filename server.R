@@ -42,6 +42,22 @@ withr::with_seed(1,
 
 )
 
+extract_slider_vars_rp <-
+  function(list) {
+    list(
+      list$smoothing_params$alpha,
+      list$smoothing_params$beta,
+      list$smoothing_params$kappa,
+      list$smoothing_params$gamma,
+      list$age$min,
+      list$age$max,
+      list$age$cohort_low,
+      list$age$cohort_high,
+      list$year$min,
+      list$year$max
+    )
+  }
+
 
 function(input, output, session) {
 
@@ -92,24 +108,42 @@ function(input, output, session) {
 
   # run parameters
 
-  # runParametersReactive <- reactiveVal({cmi::rp})
-  #
-  # observeEvent(
-  #   input$click, {
-  #     rp <- runParametersReactive()
-  #   rp$smoothing_params$alpha <- input$smoothAlpha
-  #   rp$smoothing_params$beta <- input$smoothBeta
-  #   rp$smoothing_params$kappa <- input$smoothKappa
-  #   rp$smoothing_params$gamma <- input$smoothGamma
-  #   rp$age$min <- input$ageRange[1]
-  #   rp$age$max <- input$ageRange[2]
-  #   rp$year$min <- input$yearRange[1]
-  #   rp$year$max <- input$yearRange[2]
-  #   rp$age$cohort_low <- input$cohortRangeInput[1]
-  #   rp$age$cohort_high <- input$cohortRangeInput[2]
-  #   runParametersReactive(rp)
-  #   }
-  # )
+  runParametersReactive <- reactiveVal({cmi::rp})
+
+  observe({
+      rp <- runParametersReactive()
+    rp$smoothing_params$alpha <- input$smoothAlpha
+    rp$smoothing_params$beta <- input$smoothBeta
+    rp$smoothing_params$kappa <- input$smoothKappa
+    rp$smoothing_params$gamma <- input$smoothGamma
+    rp$age$min <- input$ageRange[1]
+    rp$age$max <- input$ageRange[2]
+    rp$year$min <- input$yearRange[1]
+    rp$year$max <- input$yearRange[2]
+    # rp$age$cohort_low <- input$cohortRangeInput[1]
+    # rp$age$cohort_high <- input$cohortRangeInput[2]
+    runParametersReactive(rp)
+    }
+  )
+
+  output$alignmentMessage <-
+  renderText({
+  slider_rp <- runParametersReactive()
+  model <- cmi_proj_model()
+  model_rp <- model$rp
+  if(
+    identical(
+      extract_slider_vars_rp(slider_rp),
+      extract_slider_vars_rp(model_rp)
+      )
+    ) {
+    ""
+  } else {
+    "Parameter settings are not aligned to solved values. Click `Solve APCI` button to re-calculate."
+  }
+  })
+
+
 
     # projection parameters
 
@@ -127,17 +161,18 @@ function(input, output, session) {
 
     input$click,{
 
-    rp <- cmi::rp
-    rp$smoothing_params$alpha <- input$smoothAlpha
-    rp$smoothing_params$beta <- input$smoothBeta
-    rp$smoothing_params$kappa <- input$smoothKappa
-    rp$smoothing_params$gamma <- input$smoothGamma
-    rp$age$min <- input$ageRange[1]
-    rp$age$max <- input$ageRange[2]
-    rp$year$min <- input$yearRange[1]
-    rp$year$max <- input$yearRange[2]
-    rp$age$cohort_low <- input$cohortRangeInput[1]
-    rp$age$cohort_high <- input$cohortRangeInput[2]
+      rp <- runParametersReactive()
+    # rp <- cmi::rp
+    # rp$smoothing_params$alpha <- input$smoothAlpha
+    # rp$smoothing_params$beta <- input$smoothBeta
+    # rp$smoothing_params$kappa <- input$smoothKappa
+    # rp$smoothing_params$gamma <- input$smoothGamma
+    # rp$age$min <- input$ageRange[1]
+    # rp$age$max <- input$ageRange[2]
+    # rp$year$min <- input$yearRange[1]
+    # rp$year$max <- input$yearRange[2]
+    # rp$age$cohort_low <- input$cohortRangeInput[1]
+    # rp$age$cohort_high <- input$cohortRangeInput[2]
 
     model <- cmi::CMI2022_model$new(
       gender = "male",
@@ -146,7 +181,8 @@ function(input, output, session) {
     )
     model$solve_apci()
     return(model)
-  })
+  },
+  ignoreNULL = FALSE)
 
   dataset <- reactive({
 
