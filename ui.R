@@ -19,6 +19,24 @@ fluidPage(
       "paulbeardactuarial.github.io"
     )
   ),
+
+  div(
+    HTML("
+    <br>
+    <strong>Important!</strong> This app is for demonstration purposes only.
+         The input dataset used in this demonstration is randomised.
+         The direct output has <strong>no</strong> real-world application.
+         <br>
+         <br>
+         <br>"),
+    style = "
+      font-size: 18px;
+      text-align: left;
+      margin-bottom: 20px;
+      margin-top: 10px;
+    "
+  ),
+
   tags$style(HTML(
     "
     .label-left .form-group {
@@ -129,10 +147,20 @@ fluidPage(
             sep = ""
           )
         ),
+
+        # Age and cohort range sliders
         div(
           style = "transform-origin: left top;",
-          uiOutput("cohortRangeInput") # Dynamic UI for cohort range based on min age
+          sliderInput("cohortRange",
+                      "Cohort Constraint Range",
+                      min = 20,
+                      max = 140,
+                      value = c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high),
+                      step = 1,
+                      ticks = FALSE
+          )
         ),
+
         actionButton(
           "click",
           "Solve APCI",
@@ -166,8 +194,19 @@ fluidPage(
         # Taper Age slider (dynamic UI based on max age)
         div(
           style = "transform-origin: left top;",
-          uiOutput("taperAgeInput")
+          sliderInput("taperAge",
+                      "Age Taper to Zero",
+                      min = 80,
+                      max = 120,
+                      value = cmi::projection_params$age_taper_zero,
+                      step = 1,
+                      ticks = FALSE
+          )
         ),
+        # div(
+        #   style = "transform-origin: left top;",
+        #   uiOutput("taperAgeInput")
+        # ),
 
         # additionalImprove slider
         div(
@@ -187,11 +226,11 @@ fluidPage(
   ),
   fluidRow(
     column(
-      width = 6,
-      offset = 3,
+      width = 8,
+      offset = 2,
       tags$div(
-        style = "color: red; font-weight: bold; font-size: 16px;",
-        textOutput("alignmentMessage")
+        style = "color: #008CBA; font-weight: bold; font-size: 17px;",
+        uiOutput("alignmentMessage")
       )
     )
   ),
@@ -214,12 +253,74 @@ fluidPage(
     )
   ),
 
+  fluidRow(
+    column(
+      width = 6,
+      offset = 3,
+      tags$div(
+        style = "color: red; font-weight: bold; font-size: 15px;",
+        textOutput("taperAgeMessage")
+      )
+    )
+  ),
+
+  fluidRow(
+    column(
+      width = 6,
+      offset = 3,
+      tags$div(
+        style = "color: red; font-weight: bold; font-size: 15px;",
+        textOutput("cohortAgeMessage")
+      )
+    )
+  ),
+
+  fluidRow(
+    column(
+      width = 6,
+      offset = 3,
+      tags$div(
+        style = "color: red; font-weight: bold; font-size: 15px;",
+        textOutput("convergeFailMessage")
+      )
+    )
+  ),
+
   # the money
   fluidRow(
     column(
       width = 12,
       style = "margin-top: 15px;",
       girafeOutput("heatmap", height = "600px")
+    )
+  ),
+
+  # Footer
+  tags$footer(
+    style = "
+      background-color: #EEEEEE;
+      padding: 20px 0;
+      text-align: center;
+      position: relative;
+      bottom: 0;
+      width: 100%;
+      font-size: 0.9em;
+    ",
+    div("© 2025 Paul Beard"),
+    tags$a(
+      href = "https://www.linkedin.com/in/paul-beard-78a420172/",
+      target = "_blank",
+      tags$i(class = "fab fa-linkedin", style = "margin: 0 10px;")
+    ),
+    tags$a(
+      href = "https://github.com/paulbeardactuarial",
+      target = "_blank",
+      tags$i(class = "fab fa-github", style = "margin: 0 10px;")
+    ),
+
+    # Load Font Awesome for the icons
+    tags$head(
+      tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css")
     )
   )
 )

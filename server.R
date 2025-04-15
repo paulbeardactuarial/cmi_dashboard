@@ -11,13 +11,15 @@ if (!require("cmi")) {
 }
 library(cmi)
 
+max_iteration <- 500 ## <-- keeping max_iteration low as Shiny server could become overloaded if keep at 10,000. Will cause APCI to give up sometimes
+
 withr::with_seed(1,
 
                  {randomised_male_data <-
                    cmi::cmi_2022_dth_exp$male |>
                    dplyr::arrange(age, year) |>
                    dplyr::mutate(
-                     age_reweight = rnorm(1, 0, 0.03),
+                     age_reweight = rnorm(1, 0, 0.05),
                      .by = age
                    ) |>
                    dplyr::mutate(
@@ -25,7 +27,7 @@ withr::with_seed(1,
                      .by = year
                    ) |>
                    dplyr::mutate(
-                     year_reweight = rnorm(1, 0, 0.03),
+                     year_reweight = rnorm(1, 0, 0.05),
                      .by = year
                    ) |>
                    dplyr::mutate(
@@ -63,19 +65,19 @@ function(input, output, session) {
 
 
   # Dynamic Cohort Range Input that depends on minimum age
-  cohortRange <- reactiveVal(c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high))
-  output$cohortRangeInput <- renderUI({
-    minCohort <- input$ageRange[1] # Min cohort must be >= min age
-    cohortRangeSetting <- cohortRange()
-    cohortRangeSetting[1] <- max(minCohort, cohortRangeSetting[1])
-    sliderInput("cohortRange",
-                "Cohort Constraint Range",
-                min = minCohort,
-                max = 140,
-                value = c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high),
-                step = 1,
-                ticks = FALSE)
-  })
+  # cohortRange <- reactiveVal(c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high))
+  # output$cohortRangeInput <- renderUI({
+  #   minCohort <- input$ageRange[1] # Min cohort must be >= min age
+  #   cohortRangeSetting <- cohortRange()
+  #   cohortRangeSetting[1] <- max(minCohort, cohortRangeSetting[1])
+  #   sliderInput("cohortRange",
+  #               "Cohort Constraint Range",
+  #               min = minCohort,
+  #               max = 140,
+  #               value = c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high),
+  #               step = 1,
+  #               ticks = FALSE)
+  # })
 
   # Dynamic Taper Age Input that depends on maximum age
   taperAge <- reactiveVal(cmi::projection_params$age_taper_zero)  # Initial value storage
@@ -92,11 +94,11 @@ function(input, output, session) {
                 ticks = FALSE)
   })
 
-  observeEvent(input$taperAge, {
-    if(!is.null(input$taperAge)) {
-      taperAge(input$taperAge)  # Update stored value
-    }
-  })
+  # observeEvent(input$taperAge, {
+  #   if(!is.null(input$taperAge)) {
+  #     taperAge(input$taperAge)  # Update stored value
+  #   }
+  # })
 
 
   # run parameters
@@ -113,28 +115,63 @@ function(input, output, session) {
     rp$age$max <- input$ageRange[2]
     rp$year$min <- input$yearRange[1]
     rp$year$max <- input$yearRange[2]
-    # rp$age$cohort_low <- input$cohortRangeInput[1]
-    # rp$age$cohort_high <- input$cohortRangeInput[2]
+    rp$age$cohort_low <- input$cohortRange[1]
+    rp$age$cohort_high <- input$cohortRange[2]
     runParametersReactive(rp)
     }
   )
 
-  output$alignmentMessage <-
-  renderText({
-  slider_rp <- runParametersReactive()
-  model <- cmi_proj_model()
-  model_rp <- model$rp
-  if(
-    identical(
-      extract_slider_vars_rp(slider_rp),
-      extract_slider_vars_rp(model_rp)
+  output$alignmentMessage <- renderUI({
+    slider_rp <- runParametersReactive()
+    model <- cmi_proj_model()
+    model_rp <- model$rp
+    if (
+      identical(
+        extract_slider_vars_rp(slider_rp),
+        extract_slider_vars_rp(model_rp)
       )
     ) {
-    ""
-  } else {
-    "Parameter settings are not aligned to solved values. Click `Solve APCI` button to re-calculate."
-  }
+      ""
+    } else {
+      tagList(
+        icon("exclamation-triangle", class = "text-warning"),
+        HTML(" Parameter settings are not aligned to solved values. Click `Solve APCI` button to re-calculate."),
+        icon("exclamation-triangle", class = "text-warning"),
+      )
+    }
   })
+
+  output$taperAgeMessage <-
+    renderText({
+      taper_age <- input$taperAge
+      max_age <- input$ageRange[2]
+      if(taper_age > max_age) {
+        ""
+      } else {
+        "Condition not met: Age Taper to Zero > Age Range Max."
+      }
+    })
+
+  output$cohortAgeMessage <-
+    renderText({
+      min_cohort_age <- input$cohortRange[1]
+      min_age <- input$ageRange[1]
+      if(min_cohort_age >= min_age) {
+        ""
+      } else {
+        "Condition not met: Cohort Constraint Range Min. >= Age Range Min."
+      }
+    })
+
+  output$convergeFailMessage <-
+    renderText({
+      model <- cmi_proj_model()
+      if(model$iteration_no < max_iteration) {
+        ""
+      } else {
+        glue::glue("APCI Failed to solve after {max_iteration} iterations. Max. allowed iterations has been restricted due to limited server capacity.")
+      }
+    })
 
 
 
@@ -146,7 +183,7 @@ function(input, output, session) {
     pp <- projParametersReactive()
     pp$additional_improve <- input$additionalImprove/100
     pp$ltr <- input$ltr/100
-    pp$age_taper_zero <- input$taperAgeInput
+    pp$age_taper_zero <- input$taperAge
     projParametersReactive(pp)
   }) |> debounce(250)
 
@@ -161,7 +198,7 @@ function(input, output, session) {
       dth_exp = randomised_male_data,
       rp = rp
     )
-    model$solve_apci()
+    model$solve_apci(max_iteration = max_iteration)
     return(model)
   },
   ignoreNULL = FALSE)
@@ -171,6 +208,15 @@ function(input, output, session) {
     # the dynamic parts of the code...
     model <- cmi_proj_model()
     pp <- projParametersReactive()
+
+    # return nothing in cases that have gone wrong
+    if(
+      input$cohortRange[1] < input$ageRange[1] |
+      input$taperAge <= input$ageRange[2] |
+      model$iteration_no >= max_iteration
+    ) {
+      return()
+    }
 
     # project mortality from the solved apci model
     model$projection_params <- pp
@@ -184,6 +230,13 @@ function(input, output, session) {
   })
 
   output$heatmap <- renderGirafe({
+
+    if(
+      input$cohortRange[1] < input$ageRange[1] | input$taperAge <= input$ageRange[2]
+    ) {
+      return()
+    }
+
 
     variable_used_for_p2 <- input$viewType
 
@@ -255,7 +308,7 @@ function(input, output, session) {
              options =
                list(
                  opts_hover(css = "stroke:black;color:black;line-width:20px"),
-                 opts_hover_inv(css = "opacity:0.25;"),
+                 opts_hover_inv(css = "opacity:0.2;"),
                  opts_tooltip(css = "background-color:#008CBA; color:white; padding:5px; border-radius:4px;")
                )
       )
