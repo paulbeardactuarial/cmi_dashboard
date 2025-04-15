@@ -42,206 +42,6 @@ withr::with_seed(1,
 
 )
 
-#
-#
-#
-# function(input, output, session) {
-#
-#     debouncedRunParameters <- reactive({
-#       debounce(input$smoothAlpha, 500)
-#       debounce(input$smoothBeta, 500)
-#       debounce(input$smoothKappa, 500)
-#       debounce(input$smoothGamma, 500)
-#     debounce(input$mySlider, 500) # Wait 500ms after last change
-#   })
-#
-#     # Dynamic Cohort Range Input that depends on minimum age
-#   cohortRange <- reactiveVal(c(30, 110))
-#     output$cohortRangeInput <- renderUI({
-#       minCohort <- input$ageRange[1] # Min cohort must be >= min age
-#       cohortRangeSetting <- cohortRange()
-#       cohortRangeSetting[1] <- max(minCohort, cohortRangeSetting[1])
-#       sliderInput("cohortRange",
-#                   "Cohort Constraint Range",
-#                   min = minCohort,
-#                   max = 140,
-#                   value = cohortRangeSetting,
-#                   step = 1,
-#                   ticks = FALSE)
-#     })
-#
-#     # Dynamic Taper Age Input that depends on maximum age
-#     taperAge <- reactiveVal(110)  # Initial value storage
-#
-#     output$taperAgeInput <- renderUI({
-#       maxAge <- input$ageRange[2]
-#
-#       sliderInput("taperAge",
-#                   "Tapered to Zero Age",
-#                   min = maxAge,
-#                   max = 120,
-#                   value = taperAge(),
-#                   step = 1,
-#                   ticks = FALSE)
-#     })
-#
-#     observeEvent(input$taperAge, {
-#       if(!is.null(input$taperAge)) {
-#         taperAge(input$taperAge)  # Update stored value
-#       }
-#     })
-#
-#     # rp$smoothing_params$alpha <- input$smoothAlpha
-#     # rp$smoothing_params$beta <- input$smoothBeta
-#     # rp$smoothing_params$kappa <- input$smoothKappa
-#     # rp$smoothing_params$gamma <- input$smoothGamma
-#     # rp$age$min <- input$ageRange[1]
-#     # rp$age$max <- input$ageRange[2]
-#     # rp$year$min <- input$yearRange[1]
-#     # rp$year$max <- input$yearRange[2]
-#     # rp$age$cohort_low <- input$cohortRangeInput[1]
-#     # rp$age$cohort_high <- input$cohortRangeInput[2]
-#
-#     # reactive object that solves the APCI
-#     reactive({
-#       rp <- cmi::rp
-#       cmi_proj_model <-
-#         cmi::CMI2022_model$new(
-#           gender = "male",
-#           dth_exp = randomised_male_data,
-#           rp = rp,
-#           projection_params = cmi::projection_params
-#         )
-#       cmi_proj_model$solve_apci()
-#     })
-#
-#     dataset <- reactive({
-#       cmi_proj_model$project_mortality_improvements()
-#       projected_mi <-
-#         cmi_proj_model$mortality_improvements_projected |>
-#         dplyr::filter(age <= 120 & year <= 2072) |>
-#         dplyr::mutate(cohort = year - age) |>
-#         dplyr::mutate(row_number = dplyr::row_number())
-#       return(projected_mi)
-#     })
-#
-#   #  dataset <- reactive({
-#   #   rp <- cmi::rp
-#   #   cmi_proj_model <-
-#   #     cmi::CMI2022_model$new(
-#   #       gender = "male",
-#   #       dth_exp = randomised_male_data,
-#   #       rp = rp,
-#   #       projection_params = cmi::projection_params
-#   #     )
-#   #   cmi_proj_model$run()
-#   #   projected_mi <-
-#   #     cmi_proj_model$mortality_improvements_projected |>
-#   #     dplyr::filter(age <= 120 & year <= 2072) |>
-#   #     dplyr::mutate(cohort = year - age) |>
-#   #     dplyr::mutate(row_number = dplyr::row_number())
-#   #   return(projected_mi)
-#   # })
-#
-#   # dataset <- reactive({
-#   #   rp <- cmi::rp
-#   #   rp$smoothing_params$kappa <- input$Sk
-#   #   cmi_proj_model <-
-#   #     cmi::CMI2022_model$new(
-#   #       gender = "male",
-#   #       dth_exp = randomised_male_data,
-#   #       rp = cmi::rp,
-#   #       projection_params = cmi::projection_params
-#   #     )
-#   #   cmi_proj_model$run()
-#   #   projected_mi <-
-#   #     cmi_proj_model$mortality_improvements_projected |>
-#   #     dplyr::filter(age <= 120 & year <= 2072) |>
-#   #     dplyr::mutate(cohort = year - age) |>
-#   #     dplyr::mutate(row_number = dplyr::row_number())
-#   #   return(projected_mi)
-#   # })
-#
-#   output$heatmap <- renderGirafe({
-#
-#     variable_used_for_p2 <- input$viewType
-#
-#     p1 <-
-#       dataset() |>
-#       ggplot(aes(x = year, y = age, fill = mi)) +
-#       geom_tile() +
-#       geom_tile_interactive(
-#         aes(
-#           data_id = get(variable_used_for_p2),
-#           tooltip = paste0(variable_used_for_p2, ": ", get(variable_used_for_p2))
-#           )
-#         ) +
-#       theme_classic() +
-#       scale_x_continuous(expand = c(0,0)) +
-#       scale_y_continuous(expand = c(0,0)) +
-#       scale_fill_gradient2(
-#         low = "blue",
-#         mid = "white",
-#         high = "red",
-#         midpoint = 0,
-#         limits = c(-0.06, 0.06),
-#         labels = scales::percent_format()
-#       )
-#
-#
-#     p2_x_var <- ifelse(variable_used_for_p2 == "year", "age", "year")
-#     p2 <-
-#       dataset() |>
-#       ggplot(
-#         aes(
-#           x = get(p2_x_var),
-#           y = mi,
-#           group = get(variable_used_for_p2)
-#           )
-#         ) +
-#       geom_line_interactive(
-#         aes(
-#           data_id = get(variable_used_for_p2),
-#           tooltip = paste0(variable_used_for_p2, ": ", get(variable_used_for_p2))
-#           ),
-#         color = "grey",
-#         linewidth = 0.5) +
-#       scale_y_continuous(
-#         name = "q imp (%)",
-#         labels = scales::percent_format()) +
-#       scale_x_continuous(name = p2_x_var) +
-#       theme_classic()
-#
-#     p <- p1 + p2
-#
-#     ip <-
-#     girafe(ggobj = p,
-#            width_svg  = 12,
-#            height_svg  = 6,
-#            options =
-#              list(
-#                opts_hover(css = "stroke:black;color:black;line-width:20px"),
-#                opts_hover_inv(css = "opacity:0.25;"),
-#                opts_tooltip(css = "background-color:#008CBA; color:white; padding:5px; border-radius:4px;")
-#              )
-#     )
-#
-#     return(ip)
-#   })
-#
-#
-# }
-
-
-
-
-
-
-
-
-
-
-
 
 function(input, output, session) {
 
@@ -254,7 +54,7 @@ function(input, output, session) {
   })
 
   # Dynamic Cohort Range Input that depends on minimum age
-  cohortRange <- reactiveVal(c(30, 110))
+  cohortRange <- reactiveVal(c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high))
   output$cohortRangeInput <- renderUI({
     minCohort <- input$ageRange[1] # Min cohort must be >= min age
     cohortRangeSetting <- cohortRange()
@@ -263,13 +63,13 @@ function(input, output, session) {
                 "Cohort Constraint Range",
                 min = minCohort,
                 max = 140,
-                value = cohortRangeSetting,
+                value = c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high),
                 step = 1,
                 ticks = FALSE)
   })
 
   # Dynamic Taper Age Input that depends on maximum age
-  taperAge <- reactiveVal(110)  # Initial value storage
+  taperAge <- reactiveVal(cmi::rp$age$taper)  # Initial value storage
 
   output$taperAgeInput <- renderUI({
     maxAge <- input$ageRange[2]
@@ -289,39 +89,73 @@ function(input, output, session) {
     }
   })
 
-  # rp$smoothing_params$alpha <- input$smoothAlpha
-  # rp$smoothing_params$beta <- input$smoothBeta
-  # rp$smoothing_params$kappa <- input$smoothKappa
-  # rp$smoothing_params$gamma <- input$smoothGamma
-  # rp$age$min <- input$ageRange[1]
-  # rp$age$max <- input$ageRange[2]
-  # rp$year$min <- input$yearRange[1]
-  # rp$year$max <- input$yearRange[2]
-  # rp$age$cohort_low <- input$cohortRangeInput[1]
-  # rp$age$cohort_high <- input$cohortRangeInput[2]
 
-  cmi_proj_model <- reactive({
-    # Use the debounced parameters
-    params <- debouncedRunParameters()
+  # run parameters
+
+  # runParametersReactive <- reactiveVal({cmi::rp})
+  #
+  # observeEvent(
+  #   input$click, {
+  #     rp <- runParametersReactive()
+  #   rp$smoothing_params$alpha <- input$smoothAlpha
+  #   rp$smoothing_params$beta <- input$smoothBeta
+  #   rp$smoothing_params$kappa <- input$smoothKappa
+  #   rp$smoothing_params$gamma <- input$smoothGamma
+  #   rp$age$min <- input$ageRange[1]
+  #   rp$age$max <- input$ageRange[2]
+  #   rp$year$min <- input$yearRange[1]
+  #   rp$year$max <- input$yearRange[2]
+  #   rp$age$cohort_low <- input$cohortRangeInput[1]
+  #   rp$age$cohort_high <- input$cohortRangeInput[2]
+  #   runParametersReactive(rp)
+  #   }
+  # )
+
+    # projection parameters
+
+  projParametersReactive <- reactiveVal({cmi::projection_params})
+
+  observe({
+    pp <- projParametersReactive()
+    pp$additional_improve <- input$additionalImprove/100
+    pp$ltr <- input$ltr/100
+    #pp$age_taper <- input$taperAgeInput
+    projParametersReactive(pp)
+  })
+
+  cmi_proj_model <- eventReactive(
+
+    input$click,{
 
     rp <- cmi::rp
-    # Update your rp object with the input values if needed
-    # Example: rp$smoothing_parameter$alpha <- params$smoothAlpha
+    rp$smoothing_params$alpha <- input$smoothAlpha
+    rp$smoothing_params$beta <- input$smoothBeta
+    rp$smoothing_params$kappa <- input$smoothKappa
+    rp$smoothing_params$gamma <- input$smoothGamma
+    rp$age$min <- input$ageRange[1]
+    rp$age$max <- input$ageRange[2]
+    rp$year$min <- input$yearRange[1]
+    rp$year$max <- input$yearRange[2]
+    rp$age$cohort_low <- input$cohortRangeInput[1]
+    rp$age$cohort_high <- input$cohortRangeInput[2]
 
     model <- cmi::CMI2022_model$new(
       gender = "male",
       dth_exp = randomised_male_data,
-      rp = rp,
-      projection_params = cmi::projection_params
+      rp = rp
     )
     model$solve_apci()
     return(model)
   })
 
   dataset <- reactive({
-    # Use the model from the reactive
-    model <- cmi_proj_model()
 
+    # the dynamic parts of the code...
+    model <- cmi_proj_model()
+    pp <- projParametersReactive()
+
+    # project mortality from the solved apci model
+    model$projection_params <- pp
     model$project_mortality_improvements()
     projected_mi <-
       model$mortality_improvements_projected |>
@@ -330,43 +164,6 @@ function(input, output, session) {
       dplyr::mutate(row_number = dplyr::row_number())
     return(projected_mi)
   })
-
-  #  dataset <- reactive({
-  #   rp <- cmi::rp
-  #   cmi_proj_model <-
-  #     cmi::CMI2022_model$new(
-  #       gender = "male",
-  #       dth_exp = randomised_male_data,
-  #       rp = rp,
-  #       projection_params = cmi::projection_params
-  #     )
-  #   cmi_proj_model$run()
-  #   projected_mi <-
-  #     cmi_proj_model$mortality_improvements_projected |>
-  #     dplyr::filter(age <= 120 & year <= 2072) |>
-  #     dplyr::mutate(cohort = year - age) |>
-  #     dplyr::mutate(row_number = dplyr::row_number())
-  #   return(projected_mi)
-  # })
-
-  # dataset <- reactive({
-  #   rp <- cmi::rp
-  #   rp$smoothing_params$kappa <- input$Sk
-  #   cmi_proj_model <-
-  #     cmi::CMI2022_model$new(
-  #       gender = "male",
-  #       dth_exp = randomised_male_data,
-  #       rp = cmi::rp,
-  #       projection_params = cmi::projection_params
-  #     )
-  #   cmi_proj_model$run()
-  #   projected_mi <-
-  #     cmi_proj_model$mortality_improvements_projected |>
-  #     dplyr::filter(age <= 120 & year <= 2072) |>
-  #     dplyr::mutate(cohort = year - age) |>
-  #     dplyr::mutate(row_number = dplyr::row_number())
-  #   return(projected_mi)
-  # })
 
   output$heatmap <- renderGirafe({
 
