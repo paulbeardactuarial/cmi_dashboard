@@ -64,42 +64,8 @@ extract_slider_vars_rp <-
 function(input, output, session) {
 
 
-  # Dynamic Cohort Range Input that depends on minimum age
-  # cohortRange <- reactiveVal(c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high))
-  # output$cohortRangeInput <- renderUI({
-  #   minCohort <- input$ageRange[1] # Min cohort must be >= min age
-  #   cohortRangeSetting <- cohortRange()
-  #   cohortRangeSetting[1] <- max(minCohort, cohortRangeSetting[1])
-  #   sliderInput("cohortRange",
-  #               "Cohort Constraint Range",
-  #               min = minCohort,
-  #               max = 140,
-  #               value = c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high),
-  #               step = 1,
-  #               ticks = FALSE)
-  # })
-
   # Dynamic Taper Age Input that depends on maximum age
-  taperAge <- reactiveVal(cmi::projection_params$age_taper_zero)  # Initial value storage
-
-  output$taperAgeInput <- renderUI({
-    maxAge <- input$ageRange[2]
-
-    sliderInput("taperAge",
-                "Tapered to Zero Age",
-                min = maxAge + 1,
-                max = 120,
-                value = cmi::projection_params$age_taper_zero,
-                step = 1,
-                ticks = FALSE)
-  })
-
-  # observeEvent(input$taperAge, {
-  #   if(!is.null(input$taperAge)) {
-  #     taperAge(input$taperAge)  # Update stored value
-  #   }
-  # })
-
+  #taperAge <- reactiveVal(cmi::projection_params$age_taper_zero)  # Initial value storage
 
   # run parameters
 
@@ -254,6 +220,7 @@ function(input, output, session) {
       scale_x_continuous(expand = c(0, 0)) +
       scale_y_continuous(expand = c(0, 0)) +
       scale_fill_gradientn(
+        name = "q imp (%)",
         colours = c(
           "#7f3b08",
           "#b35806",
@@ -295,7 +262,9 @@ function(input, output, session) {
         linewidth = 0.5) +
       scale_y_continuous(
         name = "q imp (%)",
-        labels = scales::percent_format()) +
+        labels = scales::percent_format(accuracy = 1),
+        breaks = seq(from = -0.06, to = 0.06, by = 0.01)
+        ) +
       scale_x_continuous(name = p2_x_var) +
       theme_classic()
 
@@ -307,8 +276,8 @@ function(input, output, session) {
              height_svg  = 7,
              options =
                list(
-                 opts_hover(css = "stroke:black;color:black;line-width:20px"),
-                 opts_hover_inv(css = "opacity:0.2;"),
+                 opts_hover(css = "stroke:black;color:black;line-width:30px"),
+                 opts_hover_inv(css = "opacity:0.15;"),
                  opts_tooltip(css = "background-color:#008CBA; color:white; padding:5px; border-radius:4px;")
                )
       )

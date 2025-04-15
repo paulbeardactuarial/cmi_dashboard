@@ -23,9 +23,10 @@ fluidPage(
   div(
     HTML("
     <br>
-    <strong>Important!</strong> This app is for demonstration purposes only.
-         The input dataset used in this demonstration is randomised.
-         The direct output has <strong>no</strong> real-world application.
+    <strong>Important!</strong>
+        The aim of this app is to perform APCI fitting and mortality projection with the same methodology as the CMI 2022 projection model.
+        This app is for demonstration purposes only.
+         The input dataset used in this demonstration is randomised. Therefore the direct output has <strong>no real world application</strong>.
          <br>
          <br>
          <br>"),
@@ -66,7 +67,7 @@ fluidPage(
       width = 3,
       wellPanel(
         style = "padding: 15px;",
-        tags$h4("Smoothing Parameters", style = "margin-top: 0;"),
+        tags$h4("APCI Smoothing Parameters", style = "margin-top: 0;"),
 
         # Age and cohort range sliders
         div(
@@ -119,7 +120,7 @@ fluidPage(
       width = 4,
       wellPanel(
         style = "padding: 15px;",
-        tags$h4("APCI Parameters", style = "margin-top: 0;"),
+        tags$h4("APCI Other Parameters", style = "margin-top: 0;"),
 
         # Age and cohort range sliders
         div(
@@ -239,7 +240,6 @@ fluidPage(
   fluidRow(
     column(
       width = 4,
-      offset = 1,
       # Dropdown selection
       prettyRadioButtons(
         inputId = "viewType",
@@ -289,9 +289,9 @@ fluidPage(
   # the money
   fluidRow(
     column(
-      width = 12,
+      width = 11,
       style = "margin-top: 15px;",
-      girafeOutput("heatmap", height = "600px")
+      girafeOutput("heatmap", width = "100%")
     )
   ),
 
