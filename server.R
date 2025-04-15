@@ -7,7 +7,7 @@ library(scales)
 library(patchwork)
 
 if (!require("cmi")) {
-  remotes::install_github("paulbeardactuarial/cmi")
+  remotes::install_github("paulbeardactuarial/cmi", force = T)
 }
 library(cmi)
 
@@ -78,16 +78,16 @@ function(input, output, session) {
   })
 
   # Dynamic Taper Age Input that depends on maximum age
-  taperAge <- reactiveVal(cmi::rp$age$taper)  # Initial value storage
+  taperAge <- reactiveVal(cmi::projection_params$age_taper_zero)  # Initial value storage
 
   output$taperAgeInput <- renderUI({
     maxAge <- input$ageRange[2]
 
     sliderInput("taperAge",
                 "Tapered to Zero Age",
-                min = maxAge,
+                min = maxAge + 1,
                 max = 120,
-                value = taperAge(),
+                value = cmi::projection_params$age_taper_zero,
                 step = 1,
                 ticks = FALSE)
   })
@@ -146,7 +146,7 @@ function(input, output, session) {
     pp <- projParametersReactive()
     pp$additional_improve <- input$additionalImprove/100
     pp$ltr <- input$ltr/100
-    #pp$age_taper <- input$taperAgeInput
+    pp$age_taper_zero <- input$taperAgeInput
     projParametersReactive(pp)
   }) |> debounce(250)
 
