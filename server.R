@@ -47,15 +47,10 @@ extract_slider_vars_rp <-
 
 function(input, output, session) {
 
-  # call the server part
-  # check_credentials returns a function to authenticate users
-  # res_auth <- secure_server(
-  #   check_credentials = check_credentials(credentials)
-  # )
-  #
-  # output$auth_output <- renderPrint({
-  #   reactiveValuesToList(res_auth)
-  # })
+  # check_credentials
+  res_auth <- secure_server(
+    check_credentials = check_credentials(credentials)
+  )
 
   # run parameters
 
@@ -169,6 +164,7 @@ function(input, output, session) {
   # switch to stop rendering outputs in cases where values ain't right
   shouldRenderAllOutputs <- reactiveVal(value = TRUE)
   observe({
+    req(res_auth$result) # <- required to stop app crashing when authentifaction was added
     model <- cmi_proj_model()
     cohort_min <- input$cohortRange[1]
     age_min <- input$ageRange[1]
