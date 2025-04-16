@@ -23,11 +23,6 @@ credentials <- data.frame(
   stringsAsFactors = FALSE
 )
 
-# UI for the password-protected content
-secure_ui <- secure_app(ui = fluidPage(
-  h3("Protected Dataset Loaded")
-))
-
 max_iteration <- 500 ## <-- keeping max_iteration low as Shiny server could become overloaded if keep at 10,000. Will cause APCI to give up sometimes
 
 extract_slider_vars_rp <-
@@ -51,6 +46,16 @@ extract_slider_vars_rp <-
 # ======== main server function ========
 
 function(input, output, session) {
+
+  # call the server part
+  # check_credentials returns a function to authenticate users
+  # res_auth <- secure_server(
+  #   check_credentials = check_credentials(credentials)
+  # )
+  #
+  # output$auth_output <- renderPrint({
+  #   reactiveValuesToList(res_auth)
+  # })
 
   # run parameters
 
@@ -280,7 +285,7 @@ function(input, output, session) {
       girafe(
         ggobj = p,
         width_svg = 14,
-        height_svg = 7,
+        height_svg = 6,
         options =
           list(
             opts_hover(css = "stroke:black;color:black;line-width:30px"),

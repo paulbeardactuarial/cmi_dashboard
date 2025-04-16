@@ -4,10 +4,9 @@ library(ggiraph)
 library(cmi)
 library(shinyWidgets)
 
-
+ui <-
 fluidPage(
   chooseSliderSkin("Shiny", color = "#008CBA"),
-  uiOutput("auth_ui"),
 
   # Static banner at the top with specified color and text
   tags$div(
@@ -38,31 +37,53 @@ fluidPage(
       }
     "))
   ),
-  div(
-    HTML("
-    <br>
-        This model was developed by Paul Beard FIA.
-        <br>
-        This model translates the methodology employed in the CMI 2022 Excel projection model, but is performed entirely in R.
-        <br>
-        This app is for demonstration purposes only
-        Although testing has shown the results align to a high degree of tolerance under many scenarios, there is no guarantee of accuracy. This model is for demonstration purposes only and is not for commercial use. The author offers no warrany and accepts no liability for its use.
-        <br>
+  h3("Introduction"),
 
-        <br>
-        This app is for demonstration purposes only.
-        <br>
+  p("This dashboard interacts with a re-imagining of the CMI Mortality Projection Model 2022. It was built by Paul Beard (FIA) using R.
+    "),
 
-         <br>
-         <br>
-         <br>"),
-    style = "
-      font-size: 18px;
-      text-align: left;
-      margin-bottom: 20px;
-      margin-top: 10px;
-    "
-  ),
+  h3("How it works"),
+
+  p(HTML("
+  The application loads an internally developed R package that is capable of performing the CMI 2022 mortality improvement methodology.
+  <div style='margin-top: 0.5em;'>
+  </div>
+  When mortality improvements are projected, the code first solves the APCI (Age Period Cohort Improvement) fitting algorithm, using the APCI parameters defined by the user. The APCI takes a few seconds to solve, so the dashboard is not immediately reactive to these parameters, and updates when `Solve APCI` is pressed.
+  When the APCI is solved the results are blended into a mortality projection, using the Projection parameters. As this is computationally simpler, the dashboard is immediately reactive to these parameters.
+  <div style='margin-top: 0.5em;'>
+  </div>
+    The datasets `CMI_2022 Male` and `CMI_2022 Female` are the core calibration datasets used by the CMI 2022 and are sourced from the ONS. Selection of either of these <b>should</b> lead to mortality improvements identical to the CMI Mortality Projection Model 2022 (see Disclaimer).
+    The `Synthetic` dataset is a simulated dataset. The output from this is a purely fictitious demonstration.
+  <div style='margin-top: 0.5em;'>
+  </div>
+  The outputs are two plots. A heatmap and a line chart showing the mortality improvements. The line chart can be switched to view by either age, year or cohort.
+    ")),
+
+  h3("Key differences"),
+
+  p(HTML("
+  This dashboard interacts with the developed R model. The R model aims to perform the same calcuations as the VBA-coded CMI model, although due to differences in the languages, the methodology used is not direct like-for-like. The R-based model offers the following advatanges:
+  <ul style='margin-top: 10px;'>
+    <li>✅ 2x speed for single runs</li>
+    <li>✅ 20x speed for batch runs</li>
+    <li>✅ Larger capacity for batch runs</li>
+    <li>✅ Easier integration with non-Microsoft Office tools</li>
+    <li>✅ Enhanced visualization capabilities (such as this interactive dashboard!)</li>
+    <li>✅ Improved reproducibility and version control</li>
+  </ul>
+")),
+
+  h3("More Information"),
+
+  p(HTML("
+  The underlying code to produce the mortality improvement projections is not made available. However, the code to produce the dashboard can be found here:
+  <a href='https://github.com/paulbeardactuarial/cmi_dashboard' target='_blank'>
+    https://github.com/paulbeardactuarial/cmi_dashboard
+  </a>.
+")),
+
+  h3("The Dashboard"),
+
   tags$style(HTML(
     "
     .label-left .form-group {
@@ -219,13 +240,7 @@ fluidPage(
             step = 1,
             ticks = FALSE
           )
-        ),
-        # actionButton(
-        #   "click",
-        #   "Solve APCI",
-        #   icon = icon("calculator"),
-        #   style = "background-color: #008CBA; color: white;"
-        # )
+        )
       )
     ),
 
@@ -295,30 +310,11 @@ fluidPage(
           )
         ),
         tags$div(
-          style = "color: #008CBA; font-weight: bold; font-size: 16px; padding: 8px;",
+          style = "color: #008CBA; font-weight: bold; font-size: 16px; padding: 4px;",
           uiOutput("alignmentMessage")
         )
         )
-      )
-    # column(
-    #   width = 8,
-    #   tags$div(
-    #     style = "color: #008CBA; font-weight: bold; font-size: 17px;",
-    #     uiOutput("alignmentMessage")
-    #   )
-    # )
-    ),
-
-  # fluidRow(
-  #   column(
-  #     width = 8,
-  #     offset = 2,
-  #     tags$div(
-  #       style = "color: #008CBA; font-weight: bold; font-size: 17px;",
-  #       uiOutput("alignmentMessage")
-  #     )
-  #   )
-  # ),
+      )),
 
   # Dropdown menu to pick the graph type shown (i.e. age, cohort or year)
   fluidRow(
@@ -336,6 +332,7 @@ fluidPage(
       )
     )
   ),
+
   fluidRow(
     column(
       width = 6,
@@ -415,4 +412,4 @@ fluidPage(
       tags$link(rel = "stylesheet", href = "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css")
     )
   )
-)
+) ## |>  secure_app()
