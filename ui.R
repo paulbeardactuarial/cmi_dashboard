@@ -7,6 +7,7 @@ library(shinyWidgets)
 
 fluidPage(
   chooseSliderSkin("Shiny", color = "#008CBA"),
+  uiOutput("auth_ui"),
 
   # Static banner at the top with specified color and text
   tags$div(
@@ -73,10 +74,11 @@ fluidPage(
       width = 4,
       radioGroupButtons(
         inputId = "dataSetUsed",
-        selected = "Dummy",
+        selected = "synthetic",
         label = "Choice of Dataset",
         width = "140%",
-        choices = c("CMI_2022 Male", "CMI_2022 Female", "Dummy"),
+        choiceNames = c("CMI_2022 Male", "CMI_2022 Female", "Synthetic"),
+        choiceValues = c("male", "female", "synthetic"),
         justified = TRUE,
         checkIcon = list(yes = icon("ok", lib = "glyphicon")
   )))),
@@ -166,7 +168,7 @@ fluidPage(
           style = "transform-origin: left top;",
           sliderInput("yearRange",
             "Year Range",
-            min = 1982,
+            min = 1961,
             max = 2022,
             value = c(cmi::rp$year$min, cmi::rp$year$max),
             step = 1,

@@ -1,3 +1,6 @@
+
+# ======== packages ========
+
 library(shiny)
 library(ggplot2)
 library(ggiraph)
@@ -6,50 +9,26 @@ library(withr)
 library(scales)
 library(patchwork)
 library(shinymanager)
-
-credentials <- data.frame(
-  user = c("user1", "user2"),
-  password = c("pass1", "pass2"),
-  stringsAsFactors = FALSE
-)
-
 if (!require("cmi")) {
-  remotes::install_github("paulbeardactuarial/cmi",)
+  remotes::install_github("paulbeardactuarial/cmi")
 }
 library(cmi)
 
-max_iteration <- 500 ## <-- keeping max_iteration low as Shiny server could become overloaded if keep at 10,000. Will cause APCI to give up sometimes
 
-withr::with_seed(1,
+# ======== data items ========
 
-                 {randomised_male_data <-
-                   cmi::cmi_2022_dth_exp$male |>
-                   dplyr::arrange(age, year) |>
-                   dplyr::mutate(
-                     age_reweight = rnorm(1, 0, 0.05),
-                     .by = age
-                   ) |>
-                   dplyr::mutate(
-                     age_reweight_minus_1 = dplyr::lag(age_reweight, 1, default = 0),
-                     .by = year
-                   ) |>
-                   dplyr::mutate(
-                     year_reweight = rnorm(1, 0, 0.05),
-                     .by = year
-                   ) |>
-                   dplyr::mutate(
-                     year_reweight_minus_1 = dplyr::lag(year_reweight, 1, default = 0),
-                     .by = age
-                   ) |>
-                   dplyr::mutate(
-                     exposure =
-                       exposure *
-                       (1 + age_reweight) * (1 + year_reweight) *
-                       (1 + 0.5 * age_reweight_minus_1) * (1 + 0.5 * year_reweight_minus_1)
-                   ) |>
-                   dplyr::select(age, year, deaths, exposure)}
-
+credentials <- data.frame(
+  user = "user",
+  password = "password123", # Replace with your actual password
+  stringsAsFactors = FALSE
 )
+
+# UI for the password-protected content
+secure_ui <- secure_app(ui = fluidPage(
+  h3("Protected Dataset Loaded")
+))
+
+max_iteration <- 500 ## <-- keeping max_iteration low as Shiny server could become overloaded if keep at 10,000. Will cause APCI to give up sometimes
 
 extract_slider_vars_rp <-
   function(list) {
@@ -66,6 +45,10 @@ extract_slider_vars_rp <-
       list$year$max
     )
   }
+
+
+
+# ======== main server function ========
 
 function(input, output, session) {
 
@@ -156,15 +139,19 @@ function(input, output, session) {
 
   # --- produce the solved APCI model (will update only when "click" button is pressed) ---
 
+
+
   cmi_proj_model <- eventReactive(
 
     input$click,
     {
       rp <- runParametersReactive()
 
+      data_subset <- input$dataSetUsed
+
       model <- cmi::CMI2022_model$new(
-        gender = "male",
-        dth_exp = randomised_male_data,
+        gender = data_subset,
+        dth_exp = cmi::cmi_2022_dth_exp[[data_subset]],
         rp = rp
       )
       model$solve_apci(max_iteration = max_iteration)
