@@ -5,9 +5,16 @@ library(remotes)
 library(withr)
 library(scales)
 library(patchwork)
+library(shinymanager)
+
+credentials <- data.frame(
+  user = c("user1", "user2"),
+  password = c("pass1", "pass2"),
+  stringsAsFactors = FALSE
+)
 
 if (!require("cmi")) {
-  remotes::install_github("paulbeardactuarial/cmi", force = T)
+  remotes::install_github("paulbeardactuarial/cmi",)
 }
 library(cmi)
 
@@ -60,19 +67,14 @@ extract_slider_vars_rp <-
     )
   }
 
-
 function(input, output, session) {
-
-
-  # Dynamic Taper Age Input that depends on maximum age
-  #taperAge <- reactiveVal(cmi::projection_params$age_taper_zero)  # Initial value storage
 
   # run parameters
 
   runParametersReactive <- reactiveVal({cmi::rp})
 
   observe({
-      rp <- runParametersReactive()
+    rp <- runParametersReactive()
     rp$smoothing_params$alpha <- input$smoothAlpha
     rp$smoothing_params$beta <- input$smoothBeta
     rp$smoothing_params$kappa <- input$smoothKappa
@@ -84,8 +86,21 @@ function(input, output, session) {
     rp$age$cohort_low <- input$cohortRange[1]
     rp$age$cohort_high <- input$cohortRange[2]
     runParametersReactive(rp)
-    }
-  )
+  })
+
+  # projection parameters
+
+  projParametersReactive <- reactiveVal({cmi::projection_params})
+
+  observe({
+    pp <- projParametersReactive()
+    pp$additional_improve <- input$additionalImprove / 100
+    pp$ltr <- input$ltr / 100
+    pp$age_taper_zero <- input$taperAge
+    projParametersReactive(pp)
+  }) |> debounce(500)
+
+  # output messages (will be blank unless under certain conditions)
 
   output$alignmentMessage <- renderUI({
     slider_rp <- runParametersReactive()
@@ -101,7 +116,7 @@ function(input, output, session) {
     } else {
       tagList(
         icon("exclamation-triangle", class = "text-warning"),
-        HTML(" Parameter settings are not aligned to solved values. Click `Solve APCI` button to re-calculate."),
+        HTML(" APCI Parameter settings are not aligned to solved values. Click `Solve APCI` button to re-calculate "),
         icon("exclamation-triangle", class = "text-warning"),
       )
     }
@@ -111,7 +126,7 @@ function(input, output, session) {
     renderText({
       taper_age <- input$taperAge
       max_age <- input$ageRange[2]
-      if(taper_age > max_age) {
+      if (taper_age > max_age) {
         ""
       } else {
         "Condition not met: Age Taper to Zero > Age Range Max."
@@ -122,7 +137,7 @@ function(input, output, session) {
     renderText({
       min_cohort_age <- input$cohortRange[1]
       min_age <- input$ageRange[1]
-      if(min_cohort_age >= min_age) {
+      if (min_cohort_age >= min_age) {
         ""
       } else {
         "Condition not met: Cohort Constraint Range Min. >= Age Range Min."
@@ -132,42 +147,46 @@ function(input, output, session) {
   output$convergeFailMessage <-
     renderText({
       model <- cmi_proj_model()
-      if(model$iteration_no < max_iteration) {
+      if (model$iteration_no < max_iteration) {
         ""
       } else {
         glue::glue("APCI Failed to solve after {max_iteration} iterations. Max. allowed iterations has been restricted due to limited server capacity.")
       }
     })
 
-
-
-    # projection parameters
-
-  projParametersReactive <- reactiveVal({cmi::projection_params})
-
-  observe({
-    pp <- projParametersReactive()
-    pp$additional_improve <- input$additionalImprove/100
-    pp$ltr <- input$ltr/100
-    pp$age_taper_zero <- input$taperAge
-    projParametersReactive(pp)
-  }) |> debounce(250)
+  # --- produce the solved APCI model (will update only when "click" button is pressed) ---
 
   cmi_proj_model <- eventReactive(
 
-    input$click,{
-
+    input$click,
+    {
       rp <- runParametersReactive()
 
-    model <- cmi::CMI2022_model$new(
-      gender = "male",
-      dth_exp = randomised_male_data,
-      rp = rp
+      model <- cmi::CMI2022_model$new(
+        gender = "male",
+        dth_exp = randomised_male_data,
+        rp = rp
+      )
+      model$solve_apci(max_iteration = max_iteration)
+      return(model)
+    },
+    ignoreNULL = FALSE
+  )
+
+  # switch to stop rendering outputs in cases where values ain't right
+  shouldRenderAllOutputs <- reactiveVal(value = TRUE)
+  observe({
+    model <- cmi_proj_model()
+    cohort_min <- input$cohortRange[1]
+    age_min <- input$ageRange[1]
+    taper_age <- input$taperAge
+    age_max <- input$ageRange[2]
+    shouldRenderAllOutputs(
+      cohort_min >= age_min & taper_age > age_max & model$iteration_no < max_iteration
     )
-    model$solve_apci(max_iteration = max_iteration)
-    return(model)
-  },
-  ignoreNULL = FALSE)
+  })
+
+  # --- produce the mortality projections from the solved APCI model ---
 
   dataset <- reactive({
 
@@ -176,11 +195,8 @@ function(input, output, session) {
     pp <- projParametersReactive()
 
     # return nothing in cases that have gone wrong
-    if(
-      input$cohortRange[1] < input$ageRange[1] |
-      input$taperAge <= input$ageRange[2] |
-      model$iteration_no >= max_iteration
-    ) {
+    render_in_full <- shouldRenderAllOutputs()
+    if (!render_in_full) {
       return()
     }
 
@@ -195,14 +211,15 @@ function(input, output, session) {
     return(projected_mi)
   })
 
+  # --- produce the plots from the mortality projections ---
+
   output$heatmap <- renderGirafe({
 
-    if(
-      input$cohortRange[1] < input$ageRange[1] | input$taperAge <= input$ageRange[2]
-    ) {
+    # return nothing in cases that have gone wrong
+    render_in_full <- shouldRenderAllOutputs()
+    if (!render_in_full) {
       return()
     }
-
 
     variable_used_for_p2 <- input$viewType
 
@@ -233,7 +250,7 @@ function(input, output, session) {
           "#8073ac",
           "#542788",
           "#2d004b"
-          ),
+        ),
         values = scales::rescale(seq(from = 0.06, to = -0.06, length.out = 11)),
         limits = c(-0.06, 0.06),
         labels = scales::percent_format()
@@ -242,8 +259,8 @@ function(input, output, session) {
         legend.position = "left"
       )
 
-
     p2_x_var <- ifelse(variable_used_for_p2 == "year", "age", "year")
+
     p2 <-
       dataset() |>
       ggplot(
@@ -259,27 +276,29 @@ function(input, output, session) {
           tooltip = paste0(variable_used_for_p2, ": ", get(variable_used_for_p2))
         ),
         color = "grey",
-        linewidth = 0.5) +
+        linewidth = 0.5
+      ) +
       scale_y_continuous(
         name = "q imp (%)",
         labels = scales::percent_format(accuracy = 1),
         breaks = seq(from = -0.06, to = 0.06, by = 0.01)
-        ) +
+      ) +
       scale_x_continuous(name = p2_x_var) +
       theme_classic()
 
     p <- p1 + p2
 
     ip <-
-      girafe(ggobj = p,
-             width_svg  = 14,
-             height_svg  = 7,
-             options =
-               list(
-                 opts_hover(css = "stroke:black;color:black;line-width:30px"),
-                 opts_hover_inv(css = "opacity:0.15;"),
-                 opts_tooltip(css = "background-color:#008CBA; color:white; padding:5px; border-radius:4px;")
-               )
+      girafe(
+        ggobj = p,
+        width_svg = 14,
+        height_svg = 7,
+        options =
+          list(
+            opts_hover(css = "stroke:black;color:black;line-width:30px"),
+            opts_hover_inv(css = "opacity:0.15;"),
+            opts_tooltip(css = "background-color:#008CBA; color:white; padding:5px; border-radius:4px;")
+          )
       )
 
     return(ip)
@@ -287,4 +306,3 @@ function(input, output, session) {
 
 
 }
-

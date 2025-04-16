@@ -5,8 +5,6 @@ library(cmi)
 library(shinyWidgets)
 
 
-
-
 fluidPage(
   chooseSliderSkin("Shiny", color = "#008CBA"),
 
@@ -19,7 +17,6 @@ fluidPage(
       "paulbeardactuarial.github.io"
     )
   ),
-
   div(
     HTML("
     <br>
@@ -37,7 +34,6 @@ fluidPage(
       margin-top: 10px;
     "
   ),
-
   tags$style(HTML(
     "
     .label-left .form-group {
@@ -153,15 +149,14 @@ fluidPage(
         div(
           style = "transform-origin: left top;",
           sliderInput("cohortRange",
-                      "Cohort Constraint Range",
-                      min = 20,
-                      max = 140,
-                      value = c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high),
-                      step = 1,
-                      ticks = FALSE
+            "Cohort Constraint Range",
+            min = 20,
+            max = 140,
+            value = c(cmi::rp$age$cohort_low, cmi::rp$age$cohort_high),
+            step = 1,
+            ticks = FALSE
           )
         ),
-
         actionButton(
           "click",
           "Solve APCI",
@@ -196,18 +191,14 @@ fluidPage(
         div(
           style = "transform-origin: left top;",
           sliderInput("taperAge",
-                      "Age Taper to Zero",
-                      min = 80,
-                      max = 120,
-                      value = cmi::projection_params$age_taper_zero,
-                      step = 1,
-                      ticks = FALSE
+            "Age Taper to Zero",
+            min = 80,
+            max = 120,
+            value = cmi::projection_params$age_taper_zero,
+            step = 1,
+            ticks = FALSE
           )
         ),
-        # div(
-        #   style = "transform-origin: left top;",
-        #   uiOutput("taperAgeInput")
-        # ),
 
         # additionalImprove slider
         div(
@@ -225,6 +216,7 @@ fluidPage(
       )
     )
   ),
+
   fluidRow(
     column(
       width = 8,
@@ -252,7 +244,6 @@ fluidPage(
       )
     )
   ),
-
   fluidRow(
     column(
       width = 6,
@@ -263,7 +254,6 @@ fluidPage(
       )
     )
   ),
-
   fluidRow(
     column(
       width = 6,
@@ -274,7 +264,6 @@ fluidPage(
       )
     )
   ),
-
   fluidRow(
     column(
       width = 6,
