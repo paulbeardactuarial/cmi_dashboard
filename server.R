@@ -18,8 +18,8 @@ library(cmi)
 # ======== data items ========
 
 credentials <- data.frame(
-  user = "user",
-  password = Sys.getenv("CMI_DASHBOARD_PW"),
+  user = "actuary",
+  password = cmi::cmi_dashboard_pw,
   stringsAsFactors = FALSE
 )
 
