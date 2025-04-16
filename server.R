@@ -142,14 +142,15 @@ function(input, output, session) {
 
 
   cmi_proj_model <- eventReactive(
-
-    input$click,
+    #input$click,
+    list(input$click, input$dataSetUsed),
     {
       rp <- runParametersReactive()
 
       data_subset <- input$dataSetUsed
 
       model <- cmi::CMI2022_model$new(
+        name = data_subset,
         gender = data_subset,
         dth_exp = cmi::cmi_2022_dth_exp[[data_subset]],
         rp = rp

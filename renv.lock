@@ -792,7 +792,7 @@
       "RemoteRepo": "cmi",
       "RemoteUsername": "paulbeardactuarial",
       "RemoteRef": "HEAD",
-      "RemoteSha": "d030ddb3989382bcba4d6d47655aff497e147f7f",
+      "RemoteSha": "3bff50fd4a65dc8e92504968b33fbe0200b8adec",
       "NeedsCompilation": "no",
       "Author": "Paul Beard [aut, cre]",
       "Maintainer": "Paul Beard <paul.beard.actuarial@gmail.com>"
