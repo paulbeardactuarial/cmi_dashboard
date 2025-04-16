@@ -17,6 +17,18 @@ fluidPage(
       "paulbeardactuarial.github.io"
     )
   ),
+  tags$head(
+    tags$style(HTML("
+      .radio-group-buttons > label {
+        border: 1px #008CBA;
+        color: #008CBA;
+      }
+      .radio-group-buttons .active {
+        background-color: #008CBA !important;
+        color: white !important;
+      }
+    "))
+  ),
   div(
     HTML("
     <br>
@@ -54,6 +66,24 @@ fluidPage(
     }
 
     "
+  )),
+
+  fluidRow(
+    column(
+      width = 4,
+      radioGroupButtons(
+        inputId = "dataSetUsed",
+        selected = "Dummy",
+        label = "Choice of Dataset",
+        width = "140%",
+        choices = c("CMI_2022 Male", "CMI_2022 Female", "Dummy"),
+        justified = TRUE,
+        checkIcon = list(yes = icon("ok", lib = "glyphicon")
+  )))),
+
+  fluidRow(
+    div(
+      HTML("<br>")
   )),
 
   # Main content
