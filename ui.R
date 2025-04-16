@@ -20,6 +20,14 @@ fluidPage(
   ),
   tags$head(
     tags$style(HTML("
+      .btn-disabled {
+        pointer-events: none;
+        opacity: 0.5;
+      }
+    "))
+  ),
+  tags$head(
+    tags$style(HTML("
       .radio-group-buttons > label {
         border: 1px #008CBA;
         color: #008CBA;
@@ -60,7 +68,8 @@ fluidPage(
     .label-left .form-group {
       display: flex;              /* Use flexbox for positioning children */
       flex-direction: row;        /* Place children on a row (default) */
-      width: 100%
+      width: 100%;
+      padding: 2.8px;
     }
 
     .label-left label {
@@ -94,12 +103,21 @@ fluidPage(
         justified = TRUE,
         checkIcon = list(yes = icon("ok", lib = "glyphicon")
         )
-  ))))),
 
-  # fluidRow(
-  #   div(
-  #     HTML("<br>")
-  # )),
+        # synthetic only...
+
+        # div(
+        # radioGroupButtons(
+        #   inputId = "dataSetUsed",
+        #   selected = "synthetic",
+        #   width = "40%",
+        #   choiceNames = "Synthetic",
+        #   choiceValues = "synthetic",
+        #   justified = TRUE,
+        #   checkIcon = list(yes = icon("ok", lib = "glyphicon"))
+
+
+  ))))),
 
   # Main content
   fluidRow(
@@ -202,12 +220,12 @@ fluidPage(
             ticks = FALSE
           )
         ),
-        actionButton(
-          "click",
-          "Solve APCI",
-          icon = icon("calculator"),
-          style = "background-color: #008CBA; color: white;"
-        )
+        # actionButton(
+        #   "click",
+        #   "Solve APCI",
+        #   icon = icon("calculator"),
+        #   style = "background-color: #008CBA; color: white;"
+        # )
       )
     ),
 
@@ -264,14 +282,43 @@ fluidPage(
 
   fluidRow(
     column(
-      width = 8,
-      offset = 2,
-      tags$div(
-        style = "color: #008CBA; font-weight: bold; font-size: 17px;",
-        uiOutput("alignmentMessage")
+      width = 7,
+      wellPanel(
+        style = "padding: 15px;",
+        tags$div(
+          style = "text-align: center;",
+          actionButton(
+            "click",
+            "Solve APCI",
+            icon = icon("calculator"),
+            style = "background-color: #008CBA; color: white; padding: 10px 30px; min-width: 200px;"
+          )
+        ),
+        tags$div(
+          style = "color: #008CBA; font-weight: bold; font-size: 16px; padding: 8px;",
+          uiOutput("alignmentMessage")
+        )
+        )
       )
-    )
-  ),
+    # column(
+    #   width = 8,
+    #   tags$div(
+    #     style = "color: #008CBA; font-weight: bold; font-size: 17px;",
+    #     uiOutput("alignmentMessage")
+    #   )
+    # )
+    ),
+
+  # fluidRow(
+  #   column(
+  #     width = 8,
+  #     offset = 2,
+  #     tags$div(
+  #       style = "color: #008CBA; font-weight: bold; font-size: 17px;",
+  #       uiOutput("alignmentMessage")
+  #     )
+  #   )
+  # ),
 
   # Dropdown menu to pick the graph type shown (i.e. age, cohort or year)
   fluidRow(
