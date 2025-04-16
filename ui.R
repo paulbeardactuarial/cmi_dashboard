@@ -33,10 +33,18 @@ fluidPage(
   div(
     HTML("
     <br>
-    <strong>Important!</strong>
-        The aim of this app is to perform APCI fitting and mortality projection with the same methodology as the CMI 2022 projection model.
+        This model was developed by Paul Beard FIA.
+        <br>
+        This model translates the methodology employed in the CMI 2022 Excel projection model, but is performed entirely in R.
+        <br>
+        This app is for demonstration purposes only
+        Although testing has shown the results align to a high degree of tolerance under many scenarios, there is no guarantee of accuracy. This model is for demonstration purposes only and is not for commercial use. The author offers no warrany and accepts no liability for its use.
+        <br>
+
+        <br>
         This app is for demonstration purposes only.
-         The input dataset used in this demonstration is randomised. Therefore the direct output has <strong>no real world application</strong>.
+        <br>
+
          <br>
          <br>
          <br>"),
@@ -71,22 +79,27 @@ fluidPage(
 
   fluidRow(
     column(
-      width = 4,
+      width = 5,
+      wellPanel(
+        style = "padding: 15px;",
+        tags$h4("Choice of Dataset", style = "margin-top: 0;"),
+
+        div(
       radioGroupButtons(
         inputId = "dataSetUsed",
         selected = "synthetic",
-        label = "Choice of Dataset",
-        width = "140%",
+        width = "95%",
         choiceNames = c("CMI_2022 Male", "CMI_2022 Female", "Synthetic"),
         choiceValues = c("male", "female", "synthetic"),
         justified = TRUE,
         checkIcon = list(yes = icon("ok", lib = "glyphicon")
-  )))),
+        )
+  ))))),
 
-  fluidRow(
-    div(
-      HTML("<br>")
-  )),
+  # fluidRow(
+  #   div(
+  #     HTML("<br>")
+  # )),
 
   # Main content
   fluidRow(
@@ -314,6 +327,17 @@ fluidPage(
       style = "margin-top: 15px;",
       girafeOutput("heatmap", width = "100%")
     )
+  ),
+
+  div(
+    style = "padding: 40px; font-size: 0.9em; color: #6c757d;",
+    HTML("<strong>Disclaimer:</strong> This application is provided for demonstration purposes only.
+        While every effort has been made to ensure accuracy, no guarantees are made regarding the completeness
+        or reliability of the information presented. The author accepts no responsibility for any errors,
+        omissions, or consequences arising from the use of this application. Use at your own risk.
+        Commercial use of this application or any of its components is strictly prohibited.
+        This application is not an official output of the Institute and Faculty of Actuaries (IFoA) or
+        Continuous Mortality Investigation (CMI), and it has never received endorsement from these bodies.")
   ),
 
   # Footer
