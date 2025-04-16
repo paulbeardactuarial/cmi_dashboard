@@ -3,6 +3,7 @@ library(ggplot2)
 library(ggiraph)
 library(cmi)
 library(shinyWidgets)
+library(shinymanager)
 
 ui <-
 fluidPage(
