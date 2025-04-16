@@ -19,7 +19,7 @@ library(cmi)
 
 credentials <- data.frame(
   user = "user",
-  password = "password123", # Replace with your actual password
+  password = Sys.getenv("CMI_DASHBOARD_PW"),
   stringsAsFactors = FALSE
 )
 
