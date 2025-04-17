@@ -5,9 +5,8 @@ account: paulbeardactuarial
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14510107
-bundleId: 10127825
+bundleId: 10130887
 url: https://paulbeardactuarial.shinyapps.io/cmi_dashboard/
 version: 1
 asMultiple: FALSE
 asStatic: FALSE
-ignoredFiles: init script.R|slider practice.R
