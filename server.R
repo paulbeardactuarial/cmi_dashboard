@@ -41,6 +41,32 @@ extract_slider_vars_rp <-
     )
   }
 
+plot_font <- "sans"
+
+plot_text_theme <- list(
+  theme(
+    legend.position = "left",
+    axis.text = element_text(
+      family = plot_font,
+      size = 12
+    ),
+    axis.title = element_text(
+      family = plot_font,
+      size = 14
+    ),
+    legend.title = element_text(
+      family = plot_font,
+      size = 12,
+      margin = margin(0,0,15,0)
+    ),
+    legend.text = element_text(
+      family = plot_font,
+      size = 10,
+      margin = margin(5,5,5,5)
+    ),
+    plot.margin = unit(c(0,40,0,40), "pt")
+  )
+)
 
 
 # ======== main server function ========
@@ -226,7 +252,7 @@ function(input, output, session) {
       scale_x_continuous(expand = c(0, 0)) +
       scale_y_continuous(expand = c(0, 0)) +
       scale_fill_gradientn(
-        name = "q imp (%)",
+        name = "qImp (%)",
         colours = c(
           "#7f3b08",
           "#b35806",
@@ -246,7 +272,8 @@ function(input, output, session) {
       ) +
       theme(
         legend.position = "left"
-      )
+      ) +
+      plot_text_theme
 
     p2_x_var <- ifelse(variable_used_for_p2 == "year", "age", "year")
 
@@ -268,12 +295,13 @@ function(input, output, session) {
         linewidth = 0.5
       ) +
       scale_y_continuous(
-        name = "q imp (%)",
+        name = "qImp (%)",
         labels = scales::percent_format(accuracy = 1),
         breaks = seq(from = -0.06, to = 0.06, by = 0.01)
       ) +
       scale_x_continuous(name = p2_x_var) +
-      theme_classic()
+      theme_classic() +
+      plot_text_theme
 
     p <- p1 + p2
 
