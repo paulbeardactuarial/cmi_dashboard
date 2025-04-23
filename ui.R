@@ -20,8 +20,11 @@ fluidPage(
   ),
   tags$style(HTML("
     body {
-      font-size: 16px;
+      font-size: 17px;
     }
+         h3 {
+        padding-top: 1.3em;  /* Adds extra half-line space above the title */
+      }
   ")),
   tags$head(
     tags$style(HTML("
@@ -89,7 +92,10 @@ fluidPage(
 ")),
 
   h3("The Dashboard"),
+  div(HTML("<br>")),
 
+  wellPanel(
+    style = "background-color: transparent; border: 10px solid #008CBA; border-radius: 5px; padding: 20px;",
   tags$style(HTML(
     "
     .label-left .form-group {
@@ -130,19 +136,6 @@ fluidPage(
         justified = TRUE,
         checkIcon = list(yes = icon("ok", lib = "glyphicon")
         )
-
-        # synthetic only...
-
-        # div(
-        # radioGroupButtons(
-        #   inputId = "dataSetUsed",
-        #   selected = "synthetic",
-        #   width = "40%",
-        #   choiceNames = "Synthetic",
-        #   choiceValues = "synthetic",
-        #   justified = TRUE,
-        #   checkIcon = list(yes = icon("ok", lib = "glyphicon"))
-
 
   ))))),
 
@@ -377,6 +370,7 @@ fluidPage(
       style = "margin-top: 15px;",
       girafeOutput("heatmap", width = "100%")
     )
+  )
   ),
 
   div(

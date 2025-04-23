@@ -5,7 +5,7 @@ account: paulbeardactuarial
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 14510107
-bundleId: 10130887
+bundleId: 10157257
 url: https://paulbeardactuarial.shinyapps.io/cmi_dashboard/
 version: 1
 asMultiple: FALSE
